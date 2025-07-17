@@ -16,6 +16,12 @@ subprojects {
     apply plugin: "org.springframework.boot"
     apply plugin: 'io.spring.dependency-management'
 
+    // Добавляем репозитории для загрузки зависимостей
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
     java {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
