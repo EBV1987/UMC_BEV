@@ -12,6 +12,7 @@ import ru.mts.media.platform.umc.domain.venue.VenueSave;
 import ru.mts.media.platform.umc.domain.venue.VenueSot;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -40,9 +41,7 @@ class VenuePgDao implements VenueSot {
                     Venue venue = mapper.asModel(entity);
                     if (entity.getEvents() != null) {
                         List<Event> events = entity.getEvents().stream()
-                                .map(e -> eventRepository.findById(e.getId()))
-                                .filter(Optional::isPresent)
-                                .map(Optional::get)
+                                .filter(Objects::nonNull)
                                 .map(eventMapper::asModel)
                                 .collect(Collectors.toList());
                         venue.setEvents(events);
@@ -67,9 +66,7 @@ class VenuePgDao implements VenueSot {
                     Venue venue = mapper.asModel(entity);
                     if (entity.getEvents() != null) {
                         List<Event> events = entity.getEvents().stream()
-                                .map(e -> eventRepository.findById(e.getId()))
-                                .filter(Optional::isPresent)
-                                .map(Optional::get)
+                                .filter(Objects::nonNull)
                                 .map(eventMapper::asModel)
                                 .collect(Collectors.toList());
                         venue.setEvents(events);

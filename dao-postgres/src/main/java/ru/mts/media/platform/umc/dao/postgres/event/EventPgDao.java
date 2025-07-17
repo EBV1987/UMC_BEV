@@ -9,7 +9,9 @@ import ru.mts.media.platform.umc.domain.event.EventSot;
 import ru.mts.media.platform.umc.domain.gql.types.Event;
 import ru.mts.media.platform.umc.domain.gql.types.Venue;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +31,7 @@ public class EventPgDao implements EventSot {
 
     /**
      * Получить событие по идентификатору с наполнением связанных Venue.
+     *
      * @param id идентификатор события
      * @return Optional с Event, если найден
      */
@@ -38,10 +41,9 @@ public class EventPgDao implements EventSot {
             Event event = mapper.asModel(entity);
             if (entity.getVenues() != null) {
                 List<Venue> venues = entity.getVenues().stream()
-                    .map(v -> venueRepository.findByReferenceId(v.getReferenceId()))
-                    .filter(java.util.Objects::nonNull)
-                    .map(venueMapper::asModel)
-                    .collect(Collectors.toList());
+                        .filter(java.util.Objects::nonNull)
+                        .map(venueMapper::asModel)
+                        .toList();
                 event.setVenues(venues);
             } else {
                 event.setVenues(List.of());
@@ -52,38 +54,41 @@ public class EventPgDao implements EventSot {
 
     /**
      * Получить все события из БД с наполнением связанных Venue.
+     *
      * @return список событий с заполненными площадками
      */
     @Override
     public List<Event> getAllEvents() {
-        return repository.findAll().stream().map(entity -> {
-            Event event = mapper.asModel(entity);
-            if (entity.getVenues() != null) {
-                List<Venue> venues = entity.getVenues().stream()
-                    .map(v -> venueRepository.findByReferenceId(v.getReferenceId()))
-                    .filter(java.util.Objects::nonNull)
-                    .map(venueMapper::asModel)
-                    .collect(Collectors.toList());
-                event.setVenues(venues);
-            } else {
-                event.setVenues(List.of());
-            }
-            return event;
-        }).toList();
+        return repository.findAll().stream()
+                .map(entity -> {
+                    Event event = mapper.asModel(entity);
+                    event.setVenues(
+                            Optional.ofNullable(entity.getVenues())
+                                    .stream()
+                                    .flatMap(Collection::stream)
+                                    .filter(Objects::nonNull)
+                                    .map(venueMapper::asModel)
+                                    .toList()
+                    );
+                    return event;
+                })
+                .toList();
     }
 
     /**
      * Сохранить событие в БД с установкой связей с Venue.
+     *
      * @param event DTO события
      * @return сохранённый Event
      */
     @Override
     public Event save(Event event) {
         Set<VenuePgEntity> venues = event.getVenues() == null ? Set.of() :
-            event.getVenues().stream()
-                .map(v -> venueRepository.findByReferenceId(v.getId()))
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toSet());
+                event.getVenues().stream()
+                        // TODO оптимизировать
+                        .map(v -> venueRepository.findByReferenceId(v.getId()))
+                        .filter(java.util.Objects::nonNull)
+                        .collect(Collectors.toSet());
         var entity = mapper.asEntity(event);
         entity.setVenues(venues);
         var saved = repository.save(entity);
