@@ -1,11 +1,23 @@
 package ru.mts.media.platform.umc.dao.postgres.venue;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Index;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.mts.media.platform.umc.dao.postgres.common.FullExternalIdPk;
+import ru.mts.media.platform.umc.dao.postgres.event.EventPgEntity;
+
+import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @IdClass(FullExternalIdPk.class)
 @Table(name = "venue",
         indexes = {
@@ -26,4 +38,7 @@ public class VenuePgEntity {
     private String referenceId;
 
     private String name;
+
+    @ManyToMany(mappedBy = "venues")
+    private Set<EventPgEntity> events;
 }
